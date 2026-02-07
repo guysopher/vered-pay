@@ -1,9 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk'
 import type { ExtractionResult } from './types'
-
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-})
 
 const EXTRACTION_PROMPT = `אתה מנתח תלושי שכר ישראליים. נתח את תלוש השכר בתמונה וחלץ את כל המידע למבנה JSON הבא.
 חשוב: החזר אך ורק JSON תקין, ללא טקסט נוסף.
@@ -76,32 +71,47 @@ export async function extractPayslipData(
   imageBase64: string,
   mimeType: string
 ): Promise<ExtractionResult> {
-  const response = await client.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 4096,
-    messages: [
-      {
-        role: 'user',
-        content: [
-          {
-            type: 'image',
-            source: {
-              type: 'base64',
-              media_type: mimeType as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
-              data: imageBase64,
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': process.env.ANTHROPIC_API_KEY!,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-5-20250929',
+      max_tokens: 4096,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: mimeType,
+                data: imageBase64,
+              },
             },
-          },
-          {
-            type: 'text',
-            text: EXTRACTION_PROMPT,
-          },
-        ],
-      },
-    ],
+            {
+              type: 'text',
+              text: EXTRACTION_PROMPT,
+            },
+          ],
+        },
+      ],
+    }),
   })
 
-  const textContent = response.content.find((c) => c.type === 'text')
-  if (!textContent || textContent.type !== 'text') {
+  if (!response.ok) {
+    const errorBody = await response.text()
+    throw new Error(`Claude API error ${response.status}: ${errorBody}`)
+  }
+
+  const data = await response.json()
+
+  const textContent = data.content?.find((c: { type: string }) => c.type === 'text')
+  if (!textContent) {
     throw new Error('No text response from Claude')
   }
 
