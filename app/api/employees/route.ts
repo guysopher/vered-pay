@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { db, ensureDB } from '@/lib/db'
 import { employees, employeePayrolls } from '@/lib/schema'
 import { eq, sql, desc, like, or } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
+  await ensureDB()
   const searchParams = request.nextUrl.searchParams
   const search = searchParams.get('search')
   const department = searchParams.get('department')

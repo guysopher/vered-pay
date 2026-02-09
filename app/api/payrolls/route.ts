@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { db, ensureDB } from '@/lib/db'
 import { employees, employeePayrolls, salaryComponents, payrollBatches } from '@/lib/schema'
 import { eq, and, desc } from 'drizzle-orm'
 
 export async function POST(request: NextRequest) {
   try {
+    await ensureDB()
     const { batchId, record } = await request.json()
 
     // Find or create employee by nationalId

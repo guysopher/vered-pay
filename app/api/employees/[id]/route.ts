@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { db, ensureDB } from '@/lib/db'
 import { employees, employeePayrolls, salaryComponents } from '@/lib/schema'
 import { eq, desc, inArray } from 'drizzle-orm'
 
@@ -8,6 +8,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    await ensureDB()
     const [employee] = await db
       .select()
       .from(employees)
@@ -70,6 +71,7 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
+    await ensureDB()
     const body = await request.json()
 
     const updates: Record<string, unknown> = {}

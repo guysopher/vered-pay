@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { db, ensureDB } from '@/lib/db'
 import { employeePayrolls, salaryComponents } from '@/lib/schema'
 import { eq } from 'drizzle-orm'
 
@@ -8,6 +8,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    await ensureDB()
     const [payroll] = await db
       .select()
       .from(employeePayrolls)

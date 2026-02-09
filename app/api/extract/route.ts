@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { db } from '@/lib/db'
+import { db, ensureDB } from '@/lib/db'
 import { uploadedFiles, payrollBatches } from '@/lib/schema'
 import { eq } from 'drizzle-orm'
 import { splitPdfToPages, pdfPageToBase64 } from '@/lib/pdf'
@@ -7,6 +7,7 @@ import { extractPayslipData, validatePayslipData } from '@/lib/claude'
 import { randomUUID } from 'crypto'
 
 export async function POST(request: NextRequest) {
+  await ensureDB()
   const { batchId } = await request.json()
 
   const files = await db

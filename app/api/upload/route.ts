@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { db, ensureDB } from '@/lib/db'
 import { payrollBatches, uploadedFiles } from '@/lib/schema'
 import { splitPdfToPages } from '@/lib/pdf'
 
 export async function POST(request: NextRequest) {
   try {
+    await ensureDB()
     const formData = await request.formData()
     const files = formData.getAll('files') as File[]
 

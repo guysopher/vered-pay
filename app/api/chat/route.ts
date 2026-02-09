@@ -1,10 +1,12 @@
 import { NextRequest } from 'next/server'
 import { chatWithPayrollContext } from '@/lib/claude'
 import { buildChatContext } from '@/lib/chat-context'
+import { ensureDB } from '@/lib/db'
 import type { ChatMessage } from '@/lib/types'
 
 export async function POST(request: NextRequest) {
   try {
+    await ensureDB()
     const { messages } = (await request.json()) as { messages: ChatMessage[] }
 
     if (!messages || messages.length === 0) {

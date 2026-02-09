@@ -4,6 +4,14 @@ import * as schema from './schema'
 
 export const db = drizzle(sql, { schema })
 
+let dbInitialized = false
+
+export async function ensureDB() {
+  if (dbInitialized) return
+  await initializeDatabase()
+  dbInitialized = true
+}
+
 export async function initializeDatabase() {
   await sql`
     CREATE TABLE IF NOT EXISTS companies (
