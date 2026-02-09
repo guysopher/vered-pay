@@ -5,6 +5,12 @@ import { DropZone } from '@/components/upload/DropZone'
 import { ReviewTable } from '@/components/upload/ReviewTable'
 import { ReviewModal } from '@/components/upload/ReviewModal'
 
+type ValidationIssue = {
+  severity: 'error' | 'warning' | 'info'
+  field: string
+  message: string
+}
+
 type ExtractedRecord = {
   id: string
   pageNumber: number
@@ -37,6 +43,7 @@ type ExtractedRecord = {
   earnings: Array<{ name: string; quantity: number | null; rate: number | null; percent: number | null; amount: number }>
   deductions: Array<{ name: string; quantity: number | null; rate: number | null; percent: number | null; amount: number }>
   benefits: Array<{ name: string; quantity: number | null; rate: number | null; percent: number | null; amount: number }>
+  issues: ValidationIssue[]
   status: 'pending' | 'approved' | 'skipped'
 }
 
@@ -107,6 +114,7 @@ export default function UploadPage() {
                 } else if (data.type === 'result') {
                   extractedRecords.push({
                     ...data.record,
+                    issues: data.issues || [],
                     status: 'pending',
                   })
                   setRecords([...extractedRecords])
@@ -179,6 +187,7 @@ export default function UploadPage() {
 
   const pendingCount = records.filter((r) => r.status === 'pending').length
   const approvedCount = records.filter((r) => r.status === 'approved').length
+  const issueCount = records.reduce((sum, r) => sum + (r.issues?.filter((i) => i.severity === 'error' || i.severity === 'warning').length || 0), 0)
 
   return (
     <div>
@@ -226,6 +235,11 @@ export default function UploadPage() {
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-500">
                 {approvedCount} מאושרים | {pendingCount} ממתינים
+                {issueCount > 0 && (
+                  <span className="text-red-600 font-medium mr-2">
+                    | {issueCount} ממצאים
+                  </span>
+                )}
               </span>
             </div>
             {pendingCount > 0 && (

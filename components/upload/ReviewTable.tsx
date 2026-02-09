@@ -2,11 +2,18 @@
 
 import { formatCurrency, getStatusLabel, getStatusColor } from '@/lib/utils'
 
+type ValidationIssue = {
+  severity: 'error' | 'warning' | 'info'
+  field: string
+  message: string
+}
+
 type ReviewRecord = {
   id: string
   pageNumber: number
   employee: { name: string; nationalId: string; department: string | null }
   payroll: { month: number; year: number; grossSalary: number | null; netSalary: number | null }
+  issues?: ValidationIssue[]
   status: 'pending' | 'approved' | 'skipped'
   [key: string]: unknown
 }
@@ -28,6 +35,7 @@ export function ReviewTable({ records, onSelect }: ReviewTableProps) {
             <th className="px-4 py-3 font-medium">מחלקה</th>
             <th className="px-4 py-3 font-medium">ברוטו</th>
             <th className="px-4 py-3 font-medium">נטו</th>
+            <th className="px-4 py-3 font-medium">ממצאים</th>
             <th className="px-4 py-3 font-medium">סטטוס</th>
             <th className="px-4 py-3 font-medium">פעולה</th>
           </tr>
@@ -44,6 +52,29 @@ export function ReviewTable({ records, onSelect }: ReviewTableProps) {
               <td className="px-4 py-3 text-sm">{record.employee.department || '—'}</td>
               <td className="px-4 py-3 text-sm">{formatCurrency(record.payroll.grossSalary)}</td>
               <td className="px-4 py-3 text-sm">{formatCurrency(record.payroll.netSalary)}</td>
+              <td className="px-4 py-3">
+                {(() => {
+                  const errors = record.issues?.filter((i) => i.severity === 'error').length || 0
+                  const warnings = record.issues?.filter((i) => i.severity === 'warning').length || 0
+                  if (errors === 0 && warnings === 0) {
+                    return <span className="text-green-600 text-xs font-medium">תקין</span>
+                  }
+                  return (
+                    <div className="flex gap-1">
+                      {errors > 0 && (
+                        <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                          {errors} שגיאות
+                        </span>
+                      )}
+                      {warnings > 0 && (
+                        <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
+                          {warnings} אזהרות
+                        </span>
+                      )}
+                    </div>
+                  )
+                })()}
+              </td>
               <td className="px-4 py-3">
                 <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(record.status)}`}>
                   {getStatusLabel(record.status)}

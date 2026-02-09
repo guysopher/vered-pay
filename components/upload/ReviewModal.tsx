@@ -11,6 +11,12 @@ type SalaryItem = {
   amount: number
 }
 
+type ValidationIssue = {
+  severity: 'error' | 'warning' | 'info'
+  field: string
+  message: string
+}
+
 type ReviewRecord = {
   id: string
   pageNumber: number
@@ -43,6 +49,7 @@ type ReviewRecord = {
   earnings: SalaryItem[]
   deductions: SalaryItem[]
   benefits: SalaryItem[]
+  issues?: ValidationIssue[]
   status: 'pending' | 'approved' | 'skipped'
 }
 
@@ -98,6 +105,40 @@ export function ReviewModal({ record, onApprove, onSkip, onUpdate, onClose }: Re
         </div>
 
         <div className="p-6 space-y-6">
+          {/* Validation Issues */}
+          {record.issues && record.issues.length > 0 && (
+            <section className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <h3 className="text-md font-semibold text-amber-800 mb-3 flex items-center gap-2">
+                <span className="text-lg">&#9888;</span>
+                ממצאי בדיקה ({record.issues.length})
+              </h3>
+              <div className="space-y-2">
+                {record.issues.map((issue, i) => (
+                  <div
+                    key={i}
+                    className={`flex items-start gap-2 text-sm rounded-lg px-3 py-2 ${
+                      issue.severity === 'error'
+                        ? 'bg-red-100 text-red-800'
+                        : issue.severity === 'warning'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-blue-100 text-blue-800'
+                    }`}
+                  >
+                    <span className="font-bold mt-0.5 shrink-0">
+                      {issue.severity === 'error' ? '✕' : issue.severity === 'warning' ? '!' : 'i'}
+                    </span>
+                    <div>
+                      <span className="font-medium">{issue.message}</span>
+                      {issue.field && (
+                        <span className="text-xs opacity-70 mr-2">({issue.field})</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Employee Info */}
           <section>
             <h3 className="text-md font-semibold text-gray-900 mb-3 border-b pb-2">פרטי עובד</h3>

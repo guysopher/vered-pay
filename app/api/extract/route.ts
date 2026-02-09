@@ -3,7 +3,7 @@ import { db } from '@/lib/db'
 import { uploadedFiles, payrollBatches } from '@/lib/schema'
 import { eq } from 'drizzle-orm'
 import { splitPdfToPages, pdfPageToBase64 } from '@/lib/pdf'
-import { extractPayslipData } from '@/lib/claude'
+import { extractPayslipData, validatePayslipData } from '@/lib/claude'
 import { randomUUID } from 'crypto'
 
 export async function POST(request: NextRequest) {
@@ -47,6 +47,7 @@ export async function POST(request: NextRequest) {
             try {
               const pageBase64 = pdfPageToBase64(pages[i])
               const result = await extractPayslipData(pageBase64, 'image/png')
+              const validation = await validatePayslipData(result)
 
               send({
                 type: 'result',
@@ -55,6 +56,7 @@ export async function POST(request: NextRequest) {
                   pageNumber: pageIndex,
                   ...result,
                 },
+                issues: validation.issues,
               })
             } catch (error) {
               send({
@@ -70,6 +72,7 @@ export async function POST(request: NextRequest) {
 
           try {
             const result = await extractPayslipData(file.fileData, file.mimeType)
+            const validation = await validatePayslipData(result)
 
             send({
               type: 'result',
@@ -78,6 +81,7 @@ export async function POST(request: NextRequest) {
                 pageNumber: pageIndex,
                 ...result,
               },
+              issues: validation.issues,
             })
           } catch (error) {
             send({

@@ -10,6 +10,7 @@ const navItems = [
   { href: '/upload', label: 'העלאת תלושים', icon: '📤' },
   { href: '/employees', label: 'עובדים', icon: '👥' },
   { href: '/reports', label: 'דוחות', icon: '📈' },
+  { href: '/chat', label: 'צ׳אט AI', icon: '💬' },
 ]
 
 export function Sidebar() {

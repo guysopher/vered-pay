@@ -72,6 +72,22 @@ export type PayrollWithEmployee = EmployeePayroll & {
   employeeDepartment: string | null
 }
 
+export type ValidationIssue = {
+  severity: 'error' | 'warning' | 'info'
+  field: string
+  message: string
+}
+
+export type ValidationResult = {
+  issues: ValidationIssue[]
+  isValid: boolean
+}
+
+export type ChatMessage = {
+  role: 'user' | 'assistant'
+  content: string
+}
+
 export type ExtractionResult = {
   employee: {
     name: string
