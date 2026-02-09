@@ -52,6 +52,15 @@ export default function ReportsPage() {
     fetchReports()
   }, [fetchReports])
 
+  function escapeCSVField(value: string | number | null | undefined): string {
+    if (value == null) return ''
+    const str = String(value)
+    if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+      return '"' + str.replace(/"/g, '""') + '"'
+    }
+    return str
+  }
+
   function exportCSV() {
     if (!data) return
 
@@ -62,7 +71,7 @@ export default function ReportsPage() {
       ]),
     ]
 
-    const csv = '\uFEFF' + rows.map((r) => r.join(',')).join('\n')
+    const csv = '\uFEFF' + rows.map((r) => r.map(escapeCSVField).join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')

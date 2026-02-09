@@ -5,19 +5,23 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatCurrency(amount: number | null | undefined): string {
+export function formatCurrency(amount: number | string | null | undefined): string {
   if (amount == null) return '—'
+  const num = Number(amount)
+  if (!Number.isFinite(num)) return '—'
   return new Intl.NumberFormat('he-IL', {
     style: 'currency',
     currency: 'ILS',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount)
+  }).format(num)
 }
 
-export function formatNumber(num: number | null | undefined): string {
+export function formatNumber(num: number | string | null | undefined): string {
   if (num == null) return '—'
-  return new Intl.NumberFormat('he-IL').format(num)
+  const parsed = Number(num)
+  if (!Number.isFinite(parsed)) return '—'
+  return new Intl.NumberFormat('he-IL').format(parsed)
 }
 
 export function formatMonth(month: number, year: number): string {
@@ -25,6 +29,9 @@ export function formatMonth(month: number, year: number): string {
     'ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
     'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'
   ]
+  if (month < 1 || month > 12 || !Number.isFinite(month)) {
+    return `חודש ${month} ${year}`
+  }
   return `${months[month - 1]} ${year}`
 }
 

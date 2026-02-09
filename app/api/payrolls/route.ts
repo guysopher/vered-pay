@@ -48,6 +48,26 @@ export async function POST(request: NextRequest) {
         .where(eq(employees.id, employee.id))
     }
 
+    // Check for duplicate payroll (same employee, month, year)
+    const existingPayroll = await db
+      .select({ id: employeePayrolls.id })
+      .from(employeePayrolls)
+      .where(
+        and(
+          eq(employeePayrolls.employeeId, employee.id),
+          eq(employeePayrolls.month, record.payroll.month),
+          eq(employeePayrolls.year, record.payroll.year)
+        )
+      )
+      .then((rows) => rows[0])
+
+    if (existingPayroll) {
+      return NextResponse.json(
+        { error: `תלוש שכר כבר קיים עבור עובד זה בחודש ${record.payroll.month}/${record.payroll.year}` },
+        { status: 409 }
+      )
+    }
+
     // Create employee payroll
     const [payroll] = await db
       .insert(employeePayrolls)
@@ -94,6 +114,19 @@ export async function POST(request: NextRequest) {
           amount: c.amount.toString(),
         }))
       )
+    }
+
+    // Update batch month/year from first approved payroll if still at placeholder
+    const [currentBatch] = await db
+      .select({ month: payrollBatches.month, year: payrollBatches.year })
+      .from(payrollBatches)
+      .where(eq(payrollBatches.id, batchId))
+
+    if (currentBatch && currentBatch.month === 0 && currentBatch.year === 0) {
+      await db
+        .update(payrollBatches)
+        .set({ month: record.payroll.month, year: record.payroll.year })
+        .where(eq(payrollBatches.id, batchId))
     }
 
     // Check if all payrolls in batch are approved

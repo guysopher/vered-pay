@@ -24,23 +24,38 @@ ${recentPayrolls}`
 }
 
 async function getEmployeeList(): Promise<string> {
-  const rows = await db
-    .select({
-      id: employees.id,
-      name: employees.name,
-      nationalId: employees.nationalId,
-      department: employees.department,
-      role: employees.role,
-      status: employees.status,
-    })
-    .from(employees)
-    .where(eq(employees.status, 'active'))
+  const MAX_EMPLOYEES = 50
+
+  const [rows, countResult] = await Promise.all([
+    db
+      .select({
+        id: employees.id,
+        name: employees.name,
+        nationalId: employees.nationalId,
+        department: employees.department,
+        role: employees.role,
+        status: employees.status,
+      })
+      .from(employees)
+      .where(eq(employees.status, 'active'))
+      .limit(MAX_EMPLOYEES),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(employees)
+      .where(eq(employees.status, 'active')),
+  ])
 
   if (rows.length === 0) return 'אין עובדים במערכת'
 
-  return rows
+  const total = Number(countResult[0]?.count || 0)
+  const list = rows
     .map((e) => `- ${e.name} (ת.ז. ${e.nationalId}) | מחלקה: ${e.department || 'לא צוין'} | תפקיד: ${e.role || 'לא צוין'}`)
     .join('\n')
+
+  if (total > MAX_EMPLOYEES) {
+    return `${list}\n\n(מציג ${MAX_EMPLOYEES} מתוך ${total} עובדים פעילים)`
+  }
+  return list
 }
 
 async function getRecentPayrolls(): Promise<string> {
@@ -62,7 +77,7 @@ async function getRecentPayrolls(): Promise<string> {
     .innerJoin(employees, eq(employeePayrolls.employeeId, employees.id))
     .where(eq(employeePayrolls.status, 'approved'))
     .orderBy(desc(employeePayrolls.year), desc(employeePayrolls.month))
-    .limit(100)
+    .limit(50)
 
   if (rows.length === 0) return 'אין תלושי שכר במערכת'
 

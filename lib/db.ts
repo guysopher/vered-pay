@@ -71,6 +71,11 @@ export async function initializeDatabase() {
   `
 
   await sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_employee_payroll_unique
+    ON employee_payrolls (employee_id, month, year)
+  `
+
+  await sql`
     CREATE TABLE IF NOT EXISTS salary_components (
       id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
       payroll_id UUID REFERENCES employee_payrolls(id) NOT NULL,

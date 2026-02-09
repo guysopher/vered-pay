@@ -263,7 +263,11 @@ export async function validatePayslipData(
       }
     }
   } catch {
-    // If AI validation fails, we still have deterministic checks
+    deterministicIssues.push({
+      severity: 'info',
+      field: 'ai_validation',
+      message: 'בדיקת AI לא בוצעה - מוצגים רק ממצאי הבדיקה הבסיסית',
+    })
   }
 
   const allIssues = [...deterministicIssues, ...aiIssues]

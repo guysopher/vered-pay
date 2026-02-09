@@ -39,12 +39,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const now = new Date()
     const [batch] = await db
       .insert(payrollBatches)
       .values({
-        month: now.getMonth() + 1,
-        year: now.getFullYear(),
+        month: 0,
+        year: 0,
         fileName: files.map((f) => f.name).join(', '),
         status: 'processing',
       })

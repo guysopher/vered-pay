@@ -43,7 +43,7 @@ type ExtractedRecord = {
   earnings: Array<{ name: string; quantity: number | null; rate: number | null; percent: number | null; amount: number }>
   deductions: Array<{ name: string; quantity: number | null; rate: number | null; percent: number | null; amount: number }>
   benefits: Array<{ name: string; quantity: number | null; rate: number | null; percent: number | null; amount: number }>
-  issues: ValidationIssue[]
+  issues?: ValidationIssue[]
   status: 'pending' | 'approved' | 'skipped'
 }
 

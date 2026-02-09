@@ -16,24 +16,39 @@ type Employee = {
   payrollCount: number
 }
 
+type Pagination = {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+}
+
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [pagination, setPagination] = useState<Pagination | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchEmployees()
+    setPage(1)
   }, [search])
+
+  useEffect(() => {
+    fetchEmployees()
+  }, [search, page])
 
   async function fetchEmployees() {
     setLoading(true)
     const params = new URLSearchParams()
     if (search) params.set('search', search)
+    params.set('page', String(page))
 
     const res = await fetch(`/api/employees?${params}`)
     if (res.ok) {
-      const data = await res.json()
-      setEmployees(data)
+      const json = await res.json()
+      setEmployees(json.data)
+      setPagination(json.pagination)
     }
     setLoading(false)
   }
@@ -106,6 +121,31 @@ export default function EmployeesPage() {
           </table>
         )}
       </div>
+
+      {/* Pagination */}
+      {pagination && pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
+          <span>
+            מציג {(pagination.page - 1) * pagination.limit + 1}–{Math.min(pagination.page * pagination.limit, pagination.total)} מתוך {pagination.total}
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              הקודם
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
+              disabled={page >= pagination.totalPages}
+              className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              הבא
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
