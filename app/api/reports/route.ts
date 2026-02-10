@@ -4,7 +4,6 @@ import { employees, employeePayrolls, salaryComponents } from '@/lib/schema'
 import { eq, and, gte, lte, sql, desc } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
-  await ensureDB()
   const searchParams = request.nextUrl.searchParams
   const fromMonth = searchParams.get('fromMonth')
   const fromYear = searchParams.get('fromYear')
@@ -13,6 +12,7 @@ export async function GET(request: NextRequest) {
   const department = searchParams.get('department')
 
   try {
+    await ensureDB()
     let conditions = [eq(employeePayrolls.status, 'approved')]
 
     if (fromYear && fromMonth) {

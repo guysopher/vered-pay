@@ -4,7 +4,6 @@ import { employees, employeePayrolls } from '@/lib/schema'
 import { eq, sql, desc, like, or } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
-  await ensureDB()
   const searchParams = request.nextUrl.searchParams
   const search = searchParams.get('search')
   const department = searchParams.get('department')
@@ -14,6 +13,7 @@ export async function GET(request: NextRequest) {
   const offset = (page - 1) * limit
 
   try {
+    await ensureDB()
     let conditions = []
 
     if (search) {
